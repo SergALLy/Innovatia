@@ -62,11 +62,6 @@ valid_data['hour_cos'] =  np.cos(2 * np.pi * valid_data['datetime'].dt.hour / 24
 
 valid_data = valid_data.drop(columns=['METEOFORECASTHOUR_OPENM_Datetime','datetime'])
 
-#удалим недействительные данные
-
-valid_data = valid_data.dropna()
-print(f'Форма тренировочных данных: {valid_data.shape}')
-
 missing_features = set(x_train.columns) - set(valid_data.columns)
 
 if missing_features:
@@ -82,4 +77,4 @@ print(f'Количество предсказаний: {len(predictions)}')
 predictions = np.clip(predictions, 0, None)
 
 submission = pd.DataFrame({'target':predictions})
-submission.to_csv('submission.csv', index = False, header = False)
+submission.to_csv('submission.csv', index = False, header = True)
