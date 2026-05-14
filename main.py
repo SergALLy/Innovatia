@@ -44,8 +44,8 @@ x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size = 
 
 cb_model = CatBoostRegressor(
     iterations = 5000,
-    learning_rate = 0.02,
-    depth = 5,
+    learning_rate = 0.04,
+    depth = 6,
     loss_function = "RMSE",
     
     l2_leaf_reg = 5,
