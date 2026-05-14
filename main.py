@@ -1,7 +1,7 @@
-from http.client import MISDIRECTED_REQUEST
 import numpy as np
 import pandas as pd
-from catboost import CatBoostRegressor, Pool
+from catboost import CatBoostRegressor
+from sklearn.model_selection import train_test_split
 
 train_data = pd.read_csv('train_dataset.csv')
 print(f'Форма тренировочных данных: {train_data.shape}')
@@ -17,12 +17,14 @@ train_data['month_cos'] = np.cos(2 * np.pi * train_data['datetime'].dt.month / 1
 train_data['hour_sin'] =  np.sin(2 * np.pi * train_data['datetime'].dt.hour / 24)
 train_data['hour_cos'] =  np.cos(2 * np.pi * train_data['datetime'].dt.hour / 24)
 
+train_data = train_data.sort_values('datetime')
+
 train_data = train_data.drop(columns=['METEOFORECASTHOUR_OPENM_Datetime','datetime'])
 
 #удалим недействительные данные
 
 train_data = train_data.dropna()
-print(f'Форма тренировочных данных: {train_data.shape}')
+print(f'Форма тренировочных данных после очистки недействительных данных: {train_data.shape}')
 
 #определяем целевую переменную и признаки
 
@@ -32,17 +34,25 @@ features = [col for col in train_data.columns if col != target]
 x_train = train_data[features]
 y_train = train_data[target]
 
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size = 0.15, random_state = 42, shuffle = False)
+
 model = CatBoostRegressor(
-    iterations = 1000,
-    learning_rate = 0.05,
+    iterations = 3000,
+    learning_rate = 0.03,
     depth = 5,
     loss_function = "RMSE",
+    
+    l2_leaf_reg = 5,
+    random_strength = 1.5,
+    bagging_temperature = 0.8,
+
+    early_stopping_rounds = 200,
     eval_metric = "RMSE",
-    random_seed = 40,
-    verbose = 200,
+    random_seed = 42,
+    verbose = 300
     )
 
-model.fit(x_train,y_train)
+model.fit(x_train,y_train, eval_set = (x_val, y_val))
 print('обучение завершено')
 
 valid_data = pd.read_csv('valid_features.csv')
